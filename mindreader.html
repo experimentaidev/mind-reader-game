@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Mind Reader Experiment</title>
+
+<style>
+
+body{
+font-family:Arial;
+background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+color:white;
+text-align:center;
+padding-top:60px;
+margin:0;
+}
+
+h1{
+font-size:48px;
+margin-bottom:5px;
+}
+
+p{
+opacity:0.8;
+}
+
+button{
+font-size:22px;
+padding:15px 45px;
+margin:20px;
+border:none;
+border-radius:12px;
+background:#00c3ff;
+color:white;
+cursor:pointer;
+transition:0.3s;
+}
+
+button:hover{
+transform:scale(1.1);
+background:#00e1ff;
+}
+
+#result{
+margin-top:25px;
+font-size:24px;
+}
+
+#stats{
+margin-top:15px;
+font-size:18px;
+}
+
+#analysis{
+margin-top:25px;
+font-size:20px;
+color:#ffd166;
+}
+
+canvas{
+margin-top:30px;
+background:#111;
+border-radius:10px;
+}
+
+</style>
+</head>
+
+<body>
+
+<h1>Mind Reader Experiment</h1>
+<p>Choose LEFT or RIGHT. The AI will attempt to predict your thoughts.</p>
+
+<button onclick="choose('left')">LEFT</button>
+<button onclick="choose('right')">RIGHT</button>
+
+<div id="result"></div>
+<div id="stats"></div>
+<div id="analysis"></div>
+
+<canvas id="graph" width="500" height="200"></canvas>
+
+<script>
+
+let history=[];
+let score=0;
+let rounds=0;
+let accuracyHistory=[];
+let aiLevel=1;
+
+const canvas=document.getElementById("graph");
+const ctx=canvas.getContext("2d");
+
+function randomChoice(){
+return Math.random()<0.5?"left":"right";
+}
+
+function predict(){
+
+if(history.length < aiLevel+1){
+return randomChoice();
+}
+
+let patternLength = aiLevel;
+let pattern = history.slice(-patternLength).join("");
+
+let leftCount=0;
+let rightCount=0;
+
+for(let i=0;i<history.length-patternLength;i++){
+
+let currentPattern = history.slice(i,i+patternLength).join("");
+
+if(currentPattern===pattern){
+
+let next = history[i+patternLength];
+
+if(next==="left") leftCount++;
+if(next==="right") rightCount++;
+
+}
+
+}
+
+if(leftCount===0 && rightCount===0){
+return randomChoice();
+}
+
+return leftCount>rightCount?"left":"right";
+
+}
+
+function creepyMessage(choice){
+
+if(rounds>10 && Math.random()<0.2){
+
+let messages=[
+"I expected that choice.",
+"You hesitated before choosing.",
+"You seem to favor the "+choice+" side.",
+"Your pattern is becoming clear.",
+"Interesting decision."
+];
+
+document.getElementById("analysis").innerHTML =
+messages[Math.floor(Math.random()*messages.length)];
+
+}
+
+}
+
+function psychologicalAnalysis(accuracy){
+
+if(accuracy>75){
+return "Psychological Profile: Highly predictable thinker.";
+}
+
+if(accuracy>60){
+return "Psychological Profile: Pattern-driven decision maker.";
+}
+
+if(accuracy>45){
+return "Psychological Profile: Balanced thinker.";
+}
+
+return "Psychological Profile: Chaotic decision maker.";
+}
+
+function drawGraph(){
+
+ctx.clearRect(0,0,500,200);
+
+ctx.beginPath();
+ctx.strokeStyle="#00e1ff";
+ctx.lineWidth=3;
+
+for(let i=0;i<accuracyHistory.length;i++){
+
+let x=i*(500/30);
+let y=200-(accuracyHistory[i]*2);
+
+if(i===0){
+ctx.moveTo(x,y);
+}else{
+ctx.lineTo(x,y);
+}
+
+}
+
+ctx.stroke();
+
+}
+
+function choose(choice){
+
+let prediction = predict();
+
+rounds++;
+
+if(prediction===choice){
+score++;
+}
+
+history.push(choice);
+
+let accuracy=Math.round((score/rounds)*100);
+
+accuracyHistory.push(accuracy);
+
+document.getElementById("result").innerHTML=
+"AI predicted: <b>"+prediction+"</b><br>Your choice: <b>"+choice+"</b>";
+
+document.getElementById("stats").innerHTML=
+"AI Accuracy: "+accuracy+"% | Rounds: "+rounds+" | AI Level: "+aiLevel;
+
+if(rounds%5===0){
+aiLevel++;
+document.getElementById("analysis").innerHTML=
+"The AI is learning...";
+}
+
+if(rounds>=20){
+
+let analysis = psychologicalAnalysis(accuracy);
+
+document.getElementById("analysis").innerHTML = analysis;
+
+}
+
+creepyMessage(choice);
+
+drawGraph();
+
+}
+
+</script>
+
+</body>
+</html>
